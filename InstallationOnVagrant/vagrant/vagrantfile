@@ -17,7 +17,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         ]
         v.name = "master-two-k8s"
         v.memory = 2000
-        v.cpus = 1
+        v.cpus = 2
       end
   end
 
@@ -33,7 +33,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           ]
           v.name = "master-three-k8s"
           v.memory = 2000
-          v.cpus = 1
+          v.cpus = 2
       end
   end
 
@@ -49,7 +49,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           ]
           v.name = "worker-one-k8s"
           v.memory = 2000
-          v.cpus = 1
+          v.cpus = 2
       #
        # Add first disk
       #
@@ -111,7 +111,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           ]
           v.name = "worker-two-k8s"
           v.memory = 2000
-          v.cpus = 1
+          v.cpus = 2
 
           #
            # Add first disk
@@ -175,7 +175,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
             ]
             v.name = "worker-three-k8s"
             v.memory = 2000
-            v.cpus = 1
+            v.cpus = 2
 
             #
              # Add first disk
@@ -242,7 +242,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         ]
         v.name = "master-one-k8s"
         v.memory = 2000
-        v.cpus = 1
+        v.cpus = 2
   end
 end
 

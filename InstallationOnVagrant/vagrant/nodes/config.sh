@@ -11,5 +11,6 @@ systemctl restart sshd
 echo "vagrant" | passwd --stdin root
 
 ##Update the Machine
+yum clean all -y
 yum update -y
 yum upgrade -y
