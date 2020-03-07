@@ -352,6 +352,26 @@ Details of the successfully installation:
 
 ![alt text](https://github.com/GIT-VASS/kubernetesSpray-v1.16.6-glusterfs/blob/master/InstallationOnVagrant/DocOnVagrant/Vagrant/img/InstallationAnsible.jpg)
 
+Prepare dashboard for Kubernetes:
+--------------------------------
+
+Check your cluster info where you will find the URL of yor dashboard:
+```
+ kubectl cluster-info
+```
+
+Create a service-account, a clusterrolebinding and clusterrolebinding:
+```
+ kubectl create serviceaccount dashboard-admin-sa
+ kubectl create clusterrolebinding dashboard-admin-sa  --clusterrole=cluster-admin --serviceaccount=default:dashboard-admin-sa
+ kubectl create clusterrolebinding kubernetes-dashboard --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard
+```
+
+Check the secret that you can use to login in your dashboard:
+```
+ kubectl get secrets
+ kubectl describe secret <dashboard-admin-sa-token-svhm2>
+```
 
 Deploy GlusterFS in Kubernetes:
 ------------------------------
