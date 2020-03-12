@@ -87,37 +87,37 @@ cd /root/glusterfs_installation/deploy/
 ./gk-deploy -g --user-key kubernetes --admin-key kubernetesadmin -l /tmp/heketi_deployment.log -v topology.json
 
 
+ssh root@worker-one.192.168.66.5.xip.io 'firewall-cmd --zone=public --add-port=80/tcp --permanent && firewall-cmd --reload && exit'
+
+      #####################################################
+
+      heketi is now running and accessible via http://10.233.126.3:8080 . To run
+      administrative commands you can install 'heketi-cli' and use it as follows:
+
+        # heketi-cli -s http://10.233.126.3:8080 --user admin --secret '<ADMIN_KEY>' cluster list
+
+      You can find it at https://github.com/heketi/heketi/releases . Alternatively,
+      use it from within the heketi pod:
+
+        # /bin/kubectl -n default exec -i heketi-668d478d8-4fk79 -- heketi-cli -s http://localhost:8080 --user admin --secret '<ADMIN_KEY>' cluster list
+
+      For dynamic provisioning, create a StorageClass similar to this:
+
+      ---
+      apiVersion: storage.k8s.io/v1beta1
+      kind: StorageClass
+      metadata:
+        name: glusterfs-storage
+      provisioner: kubernetes.io/glusterfs
+      parameters:
+        resturl: "http://10.233.126.3:8080"
+        restuser: "user"
+        restuserkey: "kubernetes"
 
 
-#####################################################
+      Deployment complete!
 
-heketi is now running and accessible via http://10.233.126.3:8080 . To run
-administrative commands you can install 'heketi-cli' and use it as follows:
-
-  # heketi-cli -s http://10.233.126.3:8080 --user admin --secret '<ADMIN_KEY>' cluster list
-
-You can find it at https://github.com/heketi/heketi/releases . Alternatively,
-use it from within the heketi pod:
-
-  # /bin/kubectl -n default exec -i heketi-668d478d8-4fk79 -- heketi-cli -s http://localhost:8080 --user admin --secret '<ADMIN_KEY>' cluster list
-
-For dynamic provisioning, create a StorageClass similar to this:
-
----
-apiVersion: storage.k8s.io/v1beta1
-kind: StorageClass
-metadata:
-  name: glusterfs-storage
-provisioner: kubernetes.io/glusterfs
-parameters:
-  resturl: "http://10.233.126.3:8080"
-  restuser: "user"
-  restuserkey: "kubernetes"
-
-
-Deployment complete!
-
-#####################################################
+      #####################################################
 
 
 
@@ -165,6 +165,8 @@ EOF
 mkdir -p /root/heketi-client && cd /root/heketi-client
 yum install wget -y
 
+¿donde esta el monarca?
+
 curl -s https://api.github.com/repos/heketi/heketi/releases/latest   | grep browser_download_url   | grep linux.amd64   | cut -d '"' -f 4   | wget -qi -
 
 for i in `ls | grep heketi | grep .tar.gz`; do tar xvf $i; done
@@ -179,97 +181,77 @@ kubectl patch storageclass glusterfs-storage -p '{"metadata": {"annotations":{"s
 
 ----------------------------------------------------------------------------------------
 
-### install metallb
-
-kubectl apply -f https://raw.githubusercontent.com/google/metallb/master/manifests/metallb.yaml
-
-kubectl apply -f /root/00-dpl/app/metallb/man/01-configMap.yaml
-kubectl apply -f /root/00-dpl/app/metallb/man/02-sample-lb.yaml
-
-
-### install traefik
-
-
-kubectl apply -f /root/00-dpl/app/traefik/man/1.16.6/00-deploy.yaml
-kubectl apply -f /root/00-dpl/app/traefik/man/1.16.6/01-traefik-rbac.yaml
-kubectl apply -f /root/00-dpl/app/traefik/man/1.16.6/02-svc.yaml
-kubectl apply -f /root/00-dpl/app/traefik/man/1.16.6/03-cm.yaml
-kubectl apply -f /root/00-dpl/app/traefik/man/1.16.6/04-dpl-sa.yaml
-
-kubectl delete -f /root/00-dpl/app/traefik/man/1.16.6/00-deploy.yaml
-kubectl delete -f /root/00-dpl/app/traefik/man/1.16.6/01-traefik-rbac.yaml
-kubectl delete -f /root/00-dpl/app/traefik/man/1.16.6/02-svc.yaml
-kubectl delete -f /root/00-dpl/app/traefik/man/1.16.6/03-cm.yaml
-kubectl delete -f /root/00-dpl/app/traefik/man/1.16.6/04-dpl-sa.yaml
 
 
 
-namespace/metallb-system created
-podsecuritypolicy.policy/controller created
-podsecuritypolicy.policy/speaker created
-serviceaccount/controller created
-serviceaccount/speaker created
-clusterrole.rbac.authorization.k8s.io/metallb-system:controller created
-clusterrole.rbac.authorization.k8s.io/metallb-system:speaker created
-role.rbac.authorization.k8s.io/config-watcher created
-clusterrolebinding.rbac.authorization.k8s.io/metallb-system:controller created
-clusterrolebinding.rbac.authorization.k8s.io/metallb-system:speaker created
-rolebinding.rbac.authorization.k8s.io/config-watcher created
-daemonset.apps/speaker created
-deployment.apps/controller created
+Prepare dashboard for Kubernetes:
+
+Check your cluster info where you will find the URL of yor dashboard:
+
+  kubectl cluster-info
+
+Create a service-account, a clusterrolebinding and clusterrolebinding:
+
+vi dashboard-adminuser.yaml
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kube-system
+
+kubectl apply -f dashboard-adminuser.yml
 
 
-# send files
-scp -r -i ~/.ssh/id_rootKubeSprayVirtualBox nginx root@master-one.192.168.66.2.xip.io:/root/00-dpl
+vi admin-role-binding.yaml
 
-# check logs
-kubectl logs -l component=speaker -n metallb-system
-
-traefik-ingress-lb
-
-# check metallb status
-kubectl get po --all-namespaces | grep metallb
-
-
-# create ingress controller
-
-kubectl apply -f 00-traefik-ds.yaml
-kubectl logs -l component=traefik-ingress-lb -n metallb-system
-
-kubectl logs pod traefik-ingress-controller-lhjww
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: admin-user
+  namespace: kubernetes-dashboard
 
 
-kubectl apply -f 01-nginx_load_balance.yaml
-kubectl get svc --all-namespaces
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: admin-user
+  namespace: kube-system
+
+kubectl apply -f admin-role-binding.yml
+
+kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
 
 
+  kubectl create serviceaccount dashboard-admin-sa -n kube-system
 
+  kubectl create clusterrolebinding dashboard-admin-sa  --clusterrole=cluster-admin --serviceaccount=default:dashboard-admin-sa -n kube-system
 
+  kubectl create clusterrolebinding kubernetes-dashboard --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard -n kube-system
 
+Check the secret that you can use to login in your dashboard:
 
+  kubectl get secrets -n kube-system | grep dashboard-admin
 
-
-
-
-
-
-
-
-
-
+  kubectl describe secret <dashboard-admin-sa-token-svhm2>
 
 ----------------------------------------------------------------------------------------
-### enable dashboard 
 
-kubectl cluster-info
 
-kubectl create serviceaccount dashboard-admin-sa
-kubectl create clusterrolebinding dashboard-admin-sa  --clusterrole=cluster-admin --serviceaccount=default:dashboard-admin-sa
-
-kubectl get secrets
-kubectl describe secret <dashboard-admin-sa-token-svhm2>
-
-  kubectl describe secret dashboard-admin-sa-token-b9nl5
 
 
 service/kubernetes-dashboard
