@@ -43,7 +43,15 @@
    mode: 0644
 
 - name: Ensure iptables tooling does not use the nftables backend
-  shell: update-alternatives --set iptables /usr/sbin/iptables-legacy
+  alternatives:
+    name: iptables
+    path: /usr/sbin/iptables
+    link: /etc/alternatives/iptables
+    priority: 10
+  notify: restart firewalld
+
+# - name: Ensure iptables tooling does not use the nftables backend
+#   shell: systemctl restart firewalld
 
 #Prepare Firewalld:
 

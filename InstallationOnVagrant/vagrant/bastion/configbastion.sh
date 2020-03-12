@@ -6,7 +6,7 @@
 yum update -y
 yum upgrade -y
 yum --enablerepo=extras install epel-release -y
-yum -y  install  pyOpenSSL python-pip python-dev sshpass  python-gssapi python-crypto.x86_64 git
+yum -y  install  pyOpenSSL python-pip python-dev sshpass  python-gssapi python-crypto.x86_64 git snapd
 sudo mkdir -p /etc/ansible
 mkdir -p /root/kubernetesSpray-v1.16.6-glusterfs/InstallationOnVagrant
 sudo -H pip install --upgrade pip
@@ -14,6 +14,11 @@ sudo -H pip install --upgrade setuptools
 sudo -H pip2.7 install ansible==2.7.12
 sudo mv /tmp/ansible.cfg /etc/ansible/
 mv /tmp/ansible /root/kubernetesSpray-v1.16.6-glusterfs/InstallationOnVagrant
+
+ln -s /var/lib/snapd/snap /snap
+systemctl enable --now snapd.socket
+systemctl start --now snapd.socket
+
 #sudo mv /tmp/ansible /root/
 ssh-keygen -t rsa -N "" -f /root/.ssh/id_rsa
 

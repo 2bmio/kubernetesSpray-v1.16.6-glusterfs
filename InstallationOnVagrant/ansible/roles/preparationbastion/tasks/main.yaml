@@ -19,7 +19,8 @@
 
 - name: DownLoad KubeSprayProject
   git:
-    repo: 'https://github.com/GIT-VASS/kubespray.git'
+    repo: 'https://github.com/2bmio/kubespray.git'
+    # repo: 'https://github.com/GIT-VASS/kubespray.git'
     dest: /root/kubernetes_installation
     version: master
     clone: yes
